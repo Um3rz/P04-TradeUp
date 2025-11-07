@@ -27,6 +27,7 @@ export default function topBar() {
                 <div className="text-lg flex gap-15 mr-50">
                     <a href="/portfolio">Portfolio</a>
                     <a href="/charts">Markets</a>
+                    <a href="/buy">Trade</a>
                     <a href="/dashboard">Watchlist</a>
                 </div>
                 <Avatar className="scale-130 cursor-pointer" onClick={() => setHidden('flex')}>
