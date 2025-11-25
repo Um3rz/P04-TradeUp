@@ -174,6 +174,9 @@ function calculateTotal(price, quantity) {
 ```
 
 ### Avoid `any` Type
+
+**CRITICAL: NEVER use `any` type in the codebase**
+
 ```typescript
 // ✅ GOOD: Use proper types or unknown
 function processData(data: unknown): StockData {
@@ -188,6 +191,13 @@ function processData(data: any): any {
   return data;
 }
 ```
+
+**Always use explicit types:**
+- For unknown data: use `unknown` and add type guards
+- For objects: create proper interfaces or types
+- For arrays: specify the element type (`string[]`, `StockData[]`)
+- For function parameters: always specify types
+- For return values: always specify return types
 
 ### Functions
 - **Keep small**: Max 20-30 lines
@@ -382,13 +392,15 @@ chore: update dependencies
 ## Common Pitfalls to Avoid
 
 1. **Adding inline comments** - Write self-documenting code instead
-2. **Using `any` type** - Use proper types or `unknown`
-3. **Long functions** - Break into smaller, focused functions
-4. **Unvalidated inputs** - Always use DTOs for request validation
-5. **Hardcoding values** - Use constants or environment variables
-6. **Committing secrets** - Use `.env` files and gitignore
-7. **Class components** - Use functional components with hooks
-8. **Promise chains** - Use async/await instead of `.then()`
+2. **Using `any` type** - NEVER use `any`; use proper types or `unknown` instead
+3. **Skipping linting** - ALWAYS run `npm run lint` after coding
+4. **Ignoring type errors** - Fix ALL type errors with proper types, not `any`
+5. **Long functions** - Break into smaller, focused functions
+6. **Unvalidated inputs** - Always use DTOs for request validation
+7. **Hardcoding values** - Use constants or environment variables
+8. **Committing secrets** - Use `.env` files and gitignore
+9. **Class components** - Use functional components with hooks
+10. **Promise chains** - Use async/await instead of `.then()`
 
 ---
 
@@ -420,19 +432,30 @@ chore: update dependencies
 4. **Plan the implementation** (what models, endpoints, logic needed)
 
 ### While Writing Code
-1. **Use TypeScript with explicit types** - No `any` types
+1. **Use TypeScript with explicit types** - NEVER use `any` types anywhere
 2. **Write self-documenting code** - No inline comments
 3. **Keep functions small** - Single responsibility
 4. **Follow naming conventions** - camelCase, PascalCase, UPPER_SNAKE_CASE
 5. **Organize imports** - Built-in → External → Internal
 6. **Use proper error handling** - Try-catch for async, NestJS exceptions
+7. **Type everything explicitly** - Parameters, return types, variables, arrays, objects
 
 ### After Writing Code
-1. **Run linter** - `npm run lint`
+1. **Run linter** - `npm run lint` (MANDATORY after every code change)
 2. **Check type errors** - `npx tsc --noEmit`
-3. **Test the feature** - Manual testing or unit tests
-4. **Update documentation** - If public API or major feature
-5. **Commit with conventional message** - `feat:`, `fix:`, `docs:`, etc.
+3. **Fix ALL type errors** - NEVER use `type=any` as a shortcut
+4. **Verify proper types** - Ensure all functions, parameters, and variables have explicit types
+5. **Test the feature** - Manual testing or unit tests
+6. **Update documentation** - If public API or major feature
+7. **Commit with conventional message** - `feat:`, `fix:`, `docs:`, etc.
+
+**Type Safety Workflow:**
+```bash
+# After writing any code:
+npm run lint              # Check for errors
+# If type errors exist → Fix them with proper types (NOT 'any')
+npx tsc --noEmit         # Double-check TypeScript compilation
+```
 
 ---
 

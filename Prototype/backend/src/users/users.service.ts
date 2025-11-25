@@ -25,12 +25,12 @@ export class UsersService {
     return this.prisma.user.update({
       where: { id: userId },
       data: { email: newEmail },
-      select: { 
-        id: true, 
-        email: true, 
-        name: true, 
-        role: true 
-      }
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+      },
     });
   }
 
@@ -38,12 +38,12 @@ export class UsersService {
     return this.prisma.user.update({
       where: { id: userId },
       data: { passwordHash: newPasswordHash },
-      select: { 
-        id: true, 
-        email: true, 
-        name: true, 
-        role: true 
-      }
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+      },
     });
   }
 
@@ -51,24 +51,23 @@ export class UsersService {
     return this.prisma.user.update({
       where: { id: userId },
       data: { name: newName },
-      select: { 
-        id: true, 
-        email: true, 
-        name: true, 
-        role: true 
-      }
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+      },
     });
   }
 
   async emailExists(email: string, excludeUserId?: number) {
     const user = await this.prisma.user.findUnique({
       where: { email },
-      select: { id: true }
+      select: { id: true },
     });
-    
+
     if (!user) return false;
     if (excludeUserId && user.id === excludeUserId) return false;
     return true;
   }
-
 }

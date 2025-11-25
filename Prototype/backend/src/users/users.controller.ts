@@ -12,7 +12,12 @@ export class UsersController {
   @Get('profile')
   async getProfile(@Request() req) {
     // Mask userId in logs
-    console.log('JWT User object:', { ...req.user, userId: req.user.userId ? '***' + String(req.user.userId).slice(-2) : undefined });
+    console.log('JWT User object:', {
+      ...req.user,
+      userId: req.user.userId
+        ? '***' + String(req.user.userId).slice(-2)
+        : undefined,
+    });
 
     const userId = req.user.userId;
     if (!userId) {
@@ -39,19 +44,32 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Put('email')
-  async changeEmail(@Request() req, @Body() body: { newEmail: string; currentPassword: string }) {
+  async changeEmail(
+    @Request() req,
+    @Body() body: { newEmail: string; currentPassword: string },
+  ) {
     const userId = req.user.userId;
     const { newEmail, currentPassword } = body;
 
     // Mask newEmail in logs
-    console.log('Email update requested for userId:', userId ? '***' + String(userId).slice(-2) : undefined, 'newEmail:', newEmail ? newEmail[0] + '***' + newEmail.slice(newEmail.indexOf('@')) : undefined);
+    console.log(
+      'Email update requested for userId:',
+      userId ? '***' + String(userId).slice(-2) : undefined,
+      'newEmail:',
+      newEmail
+        ? newEmail[0] + '***' + newEmail.slice(newEmail.indexOf('@'))
+        : undefined,
+    );
 
     const user = await this.usersService.findById(userId);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.passwordHash,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Current password is incorrect');
     }
@@ -64,25 +82,34 @@ export class UsersController {
     await this.usersService.updateEmail(userId, newEmail);
     return {
       success: true,
-      message: 'Email updated successfully'
+      message: 'Email updated successfully',
     };
   }
 
   @UseGuards(JwtAuthGuard)
   @Put('password')
-  async changePassword(@Request() req, @Body() body: { currentPassword: string; newPassword: string }) {
+  async changePassword(
+    @Request() req,
+    @Body() body: { currentPassword: string; newPassword: string },
+  ) {
     const userId = req.user.userId;
     const { currentPassword, newPassword } = body;
 
     // Mask userId in logs
-    console.log('Password update requested for userId:', userId ? '***' + String(userId).slice(-2) : undefined);
+    console.log(
+      'Password update requested for userId:',
+      userId ? '***' + String(userId).slice(-2) : undefined,
+    );
 
     const user = await this.usersService.findById(userId);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.passwordHash,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Current password is incorrect');
     }
@@ -93,25 +120,36 @@ export class UsersController {
     await this.usersService.updatePassword(userId, newPasswordHash);
     return {
       success: true,
-      message: 'Password updated successfully'
+      message: 'Password updated successfully',
     };
   }
 
   @UseGuards(JwtAuthGuard)
   @Put('name')
-  async changeName(@Request() req, @Body() body: { newName: string; currentPassword: string }) {
+  async changeName(
+    @Request() req,
+    @Body() body: { newName: string; currentPassword: string },
+  ) {
     const userId = req.user.userId;
     const { newName, currentPassword } = body;
 
     // Mask userId and newName in logs
-    console.log('Name update requested for userId:', userId ? '***' + String(userId).slice(-2) : undefined, 'newName:', newName ? newName[0] + '***' : undefined);
+    console.log(
+      'Name update requested for userId:',
+      userId ? '***' + String(userId).slice(-2) : undefined,
+      'newName:',
+      newName ? newName[0] + '***' : undefined,
+    );
 
     const user = await this.usersService.findById(userId);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.passwordHash,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Current password is incorrect');
     }
@@ -119,7 +157,7 @@ export class UsersController {
     await this.usersService.updateName(userId, newName);
     return {
       success: true,
-      message: 'Name updated successfully'
+      message: 'Name updated successfully',
     };
   }
 }
