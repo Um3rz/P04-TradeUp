@@ -37,6 +37,7 @@ LIST OF REQUIREMENTS COMPLETED IN THE SPRINT
 HOW TO ACCESS THE SYSTEM
 
 <Specify how your system can be accessed including URLs, user credentials etc.>
+https://p04-trade-up.vercel.app/
 
 
 
