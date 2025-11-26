@@ -94,7 +94,7 @@ export function AuthForm() {
   }
 
   return (
-    <section className="relative w-full m-10 rounded-l-3xl bg-black/20 backdrop-blur-lg border border-white/10 shadow-lg overflow-y-auto">
+    <section className="relative w-full m-10 rounded-l-3xl bg-black/50 backdrop-blur-md border border-white/10 shadow-lg overflow-y-auto">
       <header className="px-6 pt-6 pb-2">
         <h1 className="text-2xl font-semibold tracking-tight text-white">
           {mode === "signin" ? "Welcome back" : "Create your account"}
