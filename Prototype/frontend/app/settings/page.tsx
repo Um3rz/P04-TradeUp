@@ -5,7 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { useRouter } from 'next/navigation';
-import { getUserProfile, User, updateUserName, updateUserEmail, updateUserPassword } from "@/lib/userService";
+import { uploadProfileImage, getUserProfile, User, updateUserName, updateUserEmail, updateUserPassword } from "@/lib/userService";
+import { useUser } from "@/context/UserContext";
 
 export default function Settings() {
 
@@ -17,9 +18,8 @@ export default function Settings() {
     };
 
     const { register, handleSubmit, setValue, formState: { errors } } = useForm<AuthFormFields>();
-    const [image, setImage] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [user,setUser] = useState<User | null>(null);
+    const { user, refreshUser } = useUser();
     const handleButtonClick = () => {
         if (fileInputRef.current) {
             fileInputRef.current.click();
@@ -48,12 +48,11 @@ export default function Settings() {
                 await updateUserPassword(data.confirm, data.password);
             }
 
-            // Refresh user profile
-            const updatedProfile = await getUserProfile();
-            setUser(updatedProfile);
+            // Refresh user profile everywhere
+            await refreshUser();
             // Update form values with new profile data
-            setValue('name', updatedProfile.name || '');
-            setValue('email', updatedProfile.email || '');
+            setValue('name', user?.name || '');
+            setValue('email', user?.email || '');
             setValue('password', '');
             setValue('confirm', '');
 
@@ -62,49 +61,29 @@ export default function Settings() {
         }
     }
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            setImage(file);
+            try {
+                await uploadProfileImage(file);
+                await refreshUser(); // Update user everywhere (topbar, etc)
+            } catch (error) {
+                console.error('Failed to upload profile image:', error);
+            }
         }
     };
 
     const router = useRouter();
-    const [loading, setLoading] = useState(true);
+    // Remove local loading state, use user context
 
     useEffect(() => {
-        const fetchUserProfile = async () => {
-        if (typeof window !== 'undefined') {
-            const token = localStorage.getItem('access_token');
-            if (!token) {
-                setTimeout(() => {
-                    router.push('/');
-                }, 150);
-                return;
-            }
-            
-            try {
-                const profile = await getUserProfile();
-                setUser(profile);
-                // Set form values when profile is loaded
-                setValue('name', profile.name || '');
-                setValue('email', profile.email || '');
-            } catch (error) {
-                console.error('Failed to fetch user profile:', error);
-                // If token is expired or invalid, redirect to login
-                router.push('/');
-            } finally {
-                setTimeout(() => {
-                    setLoading(false);
-                }, 150);
-            }
+        if (user) {
+            setValue('name', user.name || '');
+            setValue('email', user.email || '');
         }
-    };
+    }, [user, setValue]);
 
-    fetchUserProfile();
-    }, [router, setValue]);
-
-    if (loading) {
+    if (!user) {
         return (
             <div className='min-h-screen bg-[#111418] flex items-center justify-center'>
                 <span className='text-white text-xl'>Loading...</span>
@@ -121,8 +100,10 @@ export default function Settings() {
                     <div className='bg-[#181B20] text-white rounded-3xl flex flex-col items-center w-105 h-120 p-9 gap-4'>
                         <h1 className='text-left w-[100%] font-semibold text-white text-2xl mb-5 p-0 m-0'>Profile</h1>
                         <Avatar className="cursor-pointer w-30 h-30" >
-                            {image? <AvatarImage src={URL.createObjectURL(image)} className="scale-120 border border-[#23262b]" />
-                            :<AvatarFallback className="bg-[#111418] text-white">CN</AvatarFallback>}
+                            {user?.profileImageUrl
+                                ? <AvatarImage src={user.profileImageUrl} className="scale-120 border border-[#23262b]" />
+                                : <AvatarFallback className="bg-[#111418] text-white">CN</AvatarFallback>
+                            }
                         </Avatar>
                         <p className="font-semibold text-white text-3xl p-0 m-0">{user?.name || ''}</p>
                         <p>{user?.email || ''}</p>
