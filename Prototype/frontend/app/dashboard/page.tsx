@@ -1,7 +1,10 @@
 "use client";
-import React from "react";
-import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { useUser } from '@/context/UserContext';
 import TopBar from '@/components/topbar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 /**
  * Dashboard — PSX stocks list + Watchlist (add/remove)
@@ -76,35 +79,18 @@ export default function DashboardPage() {
   const [saving, setSaving] = React.useState<Set<string>>(new Set());
   const [removing, setRemoving] = React.useState<Set<string>>(new Set());
 
+  const [showWalletPopup, setShowWalletPopup] = useState<boolean>(false);
+
+  const { user, isLoading, refreshUser } = useUser() || {};
   const tokenRef = React.useRef<string | null>(null);
   React.useEffect(() => {
     tokenRef.current =
       (typeof window !== "undefined" && localStorage.getItem("access_token")) || null;
   }, []);
 
-  const [authed, setAuthed] = React.useState(false);
-  React.useEffect(() => {
-    setAuthed(!!tokenRef.current);
-  }, []);
 
-  const router = useRouter();
-  function signOut() {
-    // Clear token
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("access_token");
-    }
-    tokenRef.current = null;
-    setAuthed(false);
-    setWatchlist(new Set());
-    setWatchlistRows([]);
-
-    router.push("/");
-  }
-
-
-
-  // ---------- Tiny API helpers ----------
-  async function apiGet(path: string): Promise<unknown> {
+// API GET
+  const apiGet = React.useCallback(async (path: string): Promise<unknown> => {
     const res = await fetch(`${API_BASE}${path}`, {
       cache: "no-store",
       headers: tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {},
@@ -112,8 +98,10 @@ export default function DashboardPage() {
     const json = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error((json as { message?: string; error?: string })?.message || (json as { message?: string; error?: string })?.error || "Request failed");
     return json;
-  }
-  async function apiPost(path: string, body: Record<string, unknown>): Promise<unknown> {
+  }, [API_BASE]);
+
+// API POST
+  const apiPost = React.useCallback(async (path: string, body: Record<string, unknown>): Promise<unknown> => {
     const res = await fetch(`${API_BASE}${path}`, {
       method: "POST",
       headers: {
@@ -125,8 +113,9 @@ export default function DashboardPage() {
     const json = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error((json as { message?: string; error?: string })?.message || (json as { message?: string; error?: string })?.error || "Request failed");
     return json;
-  }
-  async function apiDelete(path: string): Promise<unknown> {
+  }, [API_BASE]);
+// API DELETE
+  const apiDelete = React.useCallback(async (path: string): Promise<unknown> => {
     const res = await fetch(`${API_BASE}${path}`, {
       method: "DELETE",
       headers: tokenRef.current ? { Authorization: `Bearer ${tokenRef.current}` } : {},
@@ -136,9 +125,10 @@ export default function DashboardPage() {
     try { json = await res.json(); } catch {}
     if (!res.ok) throw new Error(json?.message as string || json?.error as string || "Request failed");
     return json;
-  }
-  // Normalize any /stocks/:symbol shape into the featured-row shape
-function normalizeStock(json: ApiStockResponse, fallbackSymbol?: string): StockData {
+  }, [API_BASE]);
+
+// Normalize stock data
+  const normalizeStock = React.useCallback((json: ApiStockResponse, fallbackSymbol?: string): StockData => {
   const stock = json?.stock ?? json ?? {};
   return {
     symbol: stock.symbol ?? fallbackSymbol ?? "—",
@@ -147,7 +137,7 @@ function normalizeStock(json: ApiStockResponse, fallbackSymbol?: string): StockD
     // tick could be at json.tick, json.stock.tick, or json.currentTick
     tick: json?.tick ?? stock?.tick ?? json?.currentTick ?? null,
   };
-}
+  }, []);
 
   // ---------- Loaders ----------
   const fetchFeatured = React.useCallback(async () => {
@@ -161,7 +151,7 @@ function normalizeStock(json: ApiStockResponse, fallbackSymbol?: string): StockD
     } finally {
       setLoading(false);
     }
-  }, [API_BASE]);
+  }, [apiGet]);
 
   const fetchWatchlist = React.useCallback(async () => {
   if (!tokenRef.current) {
@@ -194,8 +184,14 @@ function normalizeStock(json: ApiStockResponse, fallbackSymbol?: string): StockD
     setWatchlist(new Set());
     setWatchlistRows([]);
   }
-}, [API_BASE]);
+}, [apiGet, normalizeStock]);
 
+React.useEffect(() => {
+  if (user?.balance == -1) { // Default balance check
+    setShowWalletPopup(true);
+  }
+  console.log("WalletPopup: ", showWalletPopup);
+}, [user]); // This will run when the user object changes
 
 React.useEffect(() => {
   fetchFeatured();
@@ -223,8 +219,7 @@ React.useEffect(() => {
   };
 }, [fetchFeatured, fetchWatchlist]);
 
-  // ---------- Actions ----------
-  async function saveSymbol(symbol: string) {
+  const saveSymbol = React.useCallback(async (symbol: string) => {
   if (!tokenRef.current) {
     alert("Please sign in to use your watchlist.");
     return;
@@ -258,9 +253,9 @@ React.useEffect(() => {
     s2.delete(symbol);
     setSaving(s2);
   }
-}
+}, [apiGet, apiPost, normalizeStock, saving, watchlist]);
 
-  async function removeSymbol(symbol: string) {
+  const removeSymbol = React.useCallback(async (symbol: string) => {
     if (!tokenRef.current) return;
     if (removing.has(symbol)) return;
 
@@ -281,11 +276,98 @@ React.useEffect(() => {
       r2.delete(symbol);
       setRemoving(r2);
     }
+  }, [apiDelete, removing, watchlist]);
+
+  // ---------- UI -----------
+  // --- UserContext refresh on mount ---
+  // This ensures TopBar gets updated user info after login
+  // const { user, isLoading, refreshUser } = require('@/context/UserContext').useUser?.() || {};
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('access_token')) {
+      refreshUser?.();
+    }
+  }, []);
+
+  // Adds Funds on Signup. 
+  const handleFundWallet = async (amount: number) => {
+  try {
+    // First, check if user exists
+    if (!user) {
+      console.error('No user logged in');
+      return;
+    }
+    // First, store the current balance for reference
+    const oldBalance = user?.balance;
+    console.log('Old balance:', oldBalance);
+    
+    // Make the API call to update the balance
+    const response = await apiPost('/users/fund-wallet', { amount });
+    console.log('API Response:', response); // Log the full response if needed
+    
+    // Refresh user data to get the updated balance
+    const updatedUser = await refreshUser();
+    console.log('Updated balance:', updatedUser?.balance);
+    
+    setShowWalletPopup(false);
+  } catch (error) {
+    console.error('Error funding wallet:', error);
+  }
+};
+  // Show loading skeleton until user is loaded
+  if (isLoading || !user) {
+    return (
+      <main className="min-h-screen w-full bg-[#111418] flex items-center justify-center">
+        <div className="w-full max-w-7xl mx-auto">
+          <table className="w-full text-sm">
+            <tbody>
+              <SkeletonRows columns={8} />
+            </tbody>
+          </table>
+        </div>
+      </main>
+      
+    );
   }
 
-  // ---------- UI ----------
+  // Page
   return (
     <main className="min-h-screen w-full bg-[#111418]">
+      {/* Wallet Popup */}
+      {showWalletPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+          <Card className="w-full max-w-sm">
+            <CardHeader>
+              <CardTitle>Fund Your Wallet</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form
+                onSubmit={e => {
+                  e.preventDefault();
+                  const amount = parseFloat(e.currentTarget.amount.value);
+                  if (amount > 0) handleFundWallet(amount);
+                }}
+              >
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Input
+                      id="amount"
+                      name="amount"
+                      type="number"
+                      placeholder="Enter amount"
+                      required
+                      min="1"
+                    />
+                  </div>
+                  <Button type="submit" className="w-full">
+                    Add Funds
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <TopBar/>
       <div className="mx-auto max-w-7xl">
         <header className="mb-6 flex items-center justify-between mx-10">

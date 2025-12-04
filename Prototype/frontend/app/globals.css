@@ -123,5 +123,6 @@ html, body {
   }
   body {
     @apply bg-background text-foreground;
+    /* No global background image, set per-page if needed */
   }
 }
