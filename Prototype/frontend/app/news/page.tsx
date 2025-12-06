@@ -1,15 +1,13 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import TopBar from '@/components/topbar';
+import Image from 'next/image';
 import { fetchLatestNews, fetchStockNews } from '@/lib/newsService';
 import { NewsArticle, StockNewsArticle } from '@/types/news';
 
-type CombinedArticle = NewsArticle | StockNewsArticle;
 
-interface ArticlesSection {
-  general: NewsArticle[];
-  stock: StockNewsArticle[];
-}
+
+
 
 export default function NewsPage() {
   const [generalArticles, setGeneralArticles] = useState<NewsArticle[]>([]);
@@ -19,9 +17,7 @@ export default function NewsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState<boolean>(false);
 
-  const isNewsArticle = (article: CombinedArticle): article is NewsArticle => {
-    return 'link' in article;
-  };
+
 
   const formatDate = (dateString: string): string => {
     try {
@@ -152,7 +148,7 @@ export default function NewsPage() {
                       >
                         {article.image_url && (
                           <div className="w-64 h-48 flex-shrink-0 overflow-hidden bg-[#0F1419]">
-                            <img
+                            <Image
                               src={article.image_url}
                               alt={article.title}
                               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
@@ -205,12 +201,15 @@ export default function NewsPage() {
                       >
                         {article.image && (
                           <div className="w-64 h-48 flex-shrink-0 overflow-hidden bg-[#0F1419]">
-                            <img
+                            <Image
                               src={article.image}
                               alt={article.title}
+                              width={256}
+                              height={192}
                               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                               onError={(e) => {
-                                e.currentTarget.style.display = 'none';
+                                const target = e.target as HTMLElement;
+                                target.style.display = 'none';
                               }}
                             />
                           </div>

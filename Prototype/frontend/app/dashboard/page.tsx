@@ -191,7 +191,7 @@ React.useEffect(() => {
     setShowWalletPopup(true);
   }
   console.log("WalletPopup: ", showWalletPopup);
-}, [user]); // This will run when the user object changes
+}, [user, showWalletPopup]); // This will run when the user object changes
 
 React.useEffect(() => {
   fetchFeatured();
@@ -286,7 +286,7 @@ React.useEffect(() => {
     if (typeof window !== 'undefined' && localStorage.getItem('access_token')) {
       refreshUser?.();
     }
-  }, []);
+  }, [refreshUser]);
 
   // Adds Funds on Signup. 
   const handleFundWallet = async (amount: number) => {

@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { useRouter } from 'next/navigation';
-import { uploadProfileImage, getUserProfile, User, updateUserName, updateUserEmail, updateUserPassword } from "@/lib/userService";
+import { uploadProfileImage, updateUserName, updateUserEmail, updateUserPassword } from "@/lib/userService";
 import { useUser } from "@/context/UserContext";
 
 
@@ -30,7 +30,7 @@ export default function Settings() {
         if (!token) {
             router.replace("/"); // Redirect to login immediately
         } else {
-            setSessionChecked(true);
+            Promise.resolve().then(() => setSessionChecked(true));
         }
     }, [router]);
 

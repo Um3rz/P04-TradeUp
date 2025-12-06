@@ -35,16 +35,12 @@ export class TradesController {
   @UseGuards(JwtAuthGuard)
   @Get('transactions')
   getTransactions(
-    @Request() req,
+    @Request() req: AuthenticatedRequest,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
   ) {
     const userId = req.user.userId;
-    return this.tradesService.getTransactions(
-      userId,
-      limit || 50,
-      offset || 0,
-    );
+    return this.tradesService.getTransactions(userId, limit || 50, offset || 0);
   }
 
   @UseGuards(JwtAuthGuard)
