@@ -4,6 +4,7 @@ import TopBar from '@/components/topbar';
 import { fetchLatestNews, fetchStockNews } from '@/lib/newsService';
 import { NewsArticle, StockNewsArticle } from '@/types/news';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@/context/UserContext';
 
 type CombinedArticle = NewsArticle | StockNewsArticle;
 
@@ -14,22 +15,22 @@ interface ArticlesSection {
 
 export default function NewsPage() {
   const router = useRouter();
+  const { user, isLoading: userLoading } = useUser();
   
   const [generalArticles, setGeneralArticles] = useState<NewsArticle[]>([]);
   const [stockArticles, setStockArticles] = useState<StockNewsArticle[]>([]);
   const [searchTicker, setSearchTicker] = useState<string>('');
+  const [lastSearchedTicker, setLastSearchedTicker] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
+  const [searchLoading, setSearchLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState<boolean>(false);
-  const [sessionChecked, setSessionChecked] = useState(false);
 
   // Session check
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
     if (!token) {
       router.replace("/");
-    } else {
-      setSessionChecked(true);
     }
   }, [router]);
 
@@ -85,9 +86,10 @@ export default function NewsPage() {
     }
 
     try {
-      setLoading(true);
+      setSearchLoading(true);
       setError(null);
       setIsSearching(true);
+      setLastSearchedTicker(ticker.toUpperCase());
       
       const searchedStockArticles = await fetchStockNews(ticker.toUpperCase());
       setStockArticles(searchedStockArticles);
@@ -97,30 +99,36 @@ export default function NewsPage() {
     } catch (err) {
       setError('Failed to load stock news');
       console.error('Error fetching stock news:', err);
-    } finally {
-      setLoading(false);
+      setSearchLoading(false);
     }
   }, [loadLatestNews]);
 
+  // Clear search loading when articles are fetched
+  useEffect(() => {
+    if (isSearching && (stockArticles.length > 0 || generalArticles.length > 0)) {
+      setSearchLoading(false);
+    }
+  }, [stockArticles, generalArticles, isSearching]);
+
   const handleInputChange = (value: string): void => {
     setSearchTicker(value);
-    
-    if (!value.trim()) {
-      loadLatestNews();
-    }
   };
 
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    handleSearchNews(searchTicker);
+    if (searchTicker.trim()) {
+      handleSearchNews(searchTicker);
+    } else {
+      loadLatestNews();
+    }
   };
 
   useEffect(() => {
     loadLatestNews();
   }, [loadLatestNews]);
 
-  // Full-screen loading before session check or initial data load
-  if (!sessionChecked || loading) {
+  // Full-screen loading before user is loaded or initial data load
+  if (userLoading || !user || loading) {
     return (
       <div className='min-h-screen bg-[#0F1419] flex items-center justify-center'>
         <span className='text-white text-xl'>Loading...</span>
@@ -146,7 +154,7 @@ export default function NewsPage() {
             />
             <button
               type="submit"
-              disabled={loading}
+              disabled={searchLoading}
               className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
             >
               Search
@@ -154,9 +162,10 @@ export default function NewsPage() {
           </div>
         </form>
 
-        {isSearching && searchTicker && (
-          <div className="text-sm text-gray-400 mb-6 p-3 bg-[#181B20] rounded-lg border border-[#23262b]">
-            Showing news for: <span className="text-white font-semibold">{searchTicker.toUpperCase()}</span>
+        {searchLoading && (
+          <div className="text-sm text-blue-400 mb-6 flex items-center gap-2">
+            <div className="animate-spin h-4 w-4 border-2 border-blue-400 border-t-transparent rounded-full"></div>
+            Searching for {searchTicker.toUpperCase()}...
           </div>
         )}
 
@@ -170,7 +179,7 @@ export default function NewsPage() {
               {isSearching && stockArticles.length > 0 && (
                 <div className="mb-12">
                   <h2 className="text-2xl font-bold mb-6 text-blue-400">
-                    {searchTicker.toUpperCase()} News
+                    {lastSearchedTicker} News
                   </h2>
                   <div className="grid gap-6">
                     {stockArticles.map((article: StockNewsArticle, index: number) => (

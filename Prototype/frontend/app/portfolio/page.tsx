@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import TopBar from '@/components/topbar';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@/context/UserContext';
 
 interface PortfolioItem {
   symbol: string;
@@ -28,18 +29,16 @@ interface PortfolioData {
 
 export default function Portfolio() {
   const router = useRouter();
+  const { user, isLoading: userLoading } = useUser();
   const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sessionChecked, setSessionChecked] = useState(false);
 
   // Session check
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
     if (!token) {
       router.replace("/");
-    } else {
-      setSessionChecked(true);
     }
   }, [router]);
 
@@ -125,7 +124,7 @@ export default function Portfolio() {
     return `${numValue >= 0 ? '+' : ''}${numValue.toFixed(2)}%`;
   };
 
-  if (!sessionChecked || loading) {
+  if (userLoading || !user || loading) {
     return (
       <div className="min-h-screen bg-[#111418] flex items-center justify-center">
         <span className="text-white text-xl">Loading...</span>

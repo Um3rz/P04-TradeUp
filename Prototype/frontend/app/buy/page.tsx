@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import TopBar from '@/components/topbar';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@/context/UserContext';
 
 interface Tick {
   price: number;
@@ -18,6 +19,7 @@ interface StockData {
 export default function BuyPage() {
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
   const router = useRouter();
+  const { user, isLoading: userLoading } = useUser();
   
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [selectedStock, setSelectedStock] = useState<StockData | null>(null);
@@ -27,15 +29,12 @@ export default function BuyPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [sessionChecked, setSessionChecked] = useState(false);
 
   // Session check
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
     if (!token) {
       router.replace("/");
-    } else {
-      setSessionChecked(true);
     }
   }, [router]);
 
@@ -137,7 +136,7 @@ export default function BuyPage() {
     setTotalPrice(0);
   };
 
-  if (!sessionChecked || loading) {
+  if (userLoading || !user || loading) {
     return (
       <div className='min-h-screen bg-[#0F1419] flex items-center justify-center'>
         <span className='text-white text-xl'>Loading...</span>
