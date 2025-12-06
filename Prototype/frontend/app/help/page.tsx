@@ -37,11 +37,6 @@ const FAQ_DATA: FAQItem[] = [
     answer: "Yes, trades are executed using real-time market data. However, since this is a simulation, you're not actually buying real stocks - just practicing with virtual money."
   },
   {
-    category: "Trading", 
-    question: "What types of orders can I place?",
-    answer: "Currently, TradeUp supports market orders, which execute immediately at the current market price. Additional order types may be added in future updates."
-  },
-  {
     category: "Portfolio & Watchlist",
     question: "How do I view my portfolio?",
     answer: createLinkText(
@@ -106,26 +101,6 @@ const FAQ_DATA: FAQItem[] = [
     category: "Account & Settings",
     question: "How do I change my password?",
     answer: "In the Settings page, you'll find a 'Change Password' section where you can update your password. Make sure to use a strong, unique password."
-  },
-  {
-    category: "Account & Settings",
-    question: "Can I reset my virtual balance?",
-    answer: "Currently, account balances cannot be reset. This encourages realistic trading practice. If you need assistance, contact support."
-  },
-  {
-    category: "General Questions",
-    question: "Is TradeUp suitable for beginners?",
-    answer: "Absolutely! TradeUp is designed as a learning platform where beginners can practice trading with virtual money before risking real capital in actual markets."
-  },
-  {
-    category: "General Questions", 
-    question: "Do I need any trading experience to use TradeUp?",
-    answer: "No prior experience is required. TradeUp is perfect for learning the basics of stock trading, portfolio management, and market analysis in a risk-free environment."
-  },
-  {
-    category: "General Questions",
-    question: "Is my personal information secure?",
-    answer: "Yes, we take security seriously. Your personal information is encrypted and stored securely. We never share your data with third parties without your consent."
   }
 ];
 
