@@ -16,7 +16,17 @@ interface TickUpdateMessage {
   [key: string]: unknown;
 }
 
-@WebSocketGateway({ namespace: '/ws', cors: true })
+@WebSocketGateway({ 
+  namespace: '/ws', 
+  cors: {
+    origin: [
+      'http://localhost:3000',
+      'https://p04-trade-up.vercel.app/',
+    ],
+    credentials: true,
+    methods: ['GET', 'POST'],
+  } 
+})
 export class MarketGateway implements OnModuleInit {
   @WebSocketServer()
   server!: Server;
