@@ -35,7 +35,7 @@ export class TradesController {
   @UseGuards(JwtAuthGuard)
   @Get('transactions')
   getTransactions(
-    @Request() req,
+    @Request() req: AuthenticatedRequest,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
   ) {

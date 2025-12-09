@@ -55,11 +55,25 @@ export class MarketGateway implements OnModuleInit {
       }
     });
 
-    ws.on('message', (data) => {
+    // Fix: Type 'data' as unknown and safely narrow types instead of using 'any'
+    ws.on('message', (data: unknown) => {
       try {
-        const msg: TickUpdateMessage = JSON.parse(
-          String(data),
-        ) as TickUpdateMessage;
+        let rawMessage: string;
+
+        if (Buffer.isBuffer(data)) {
+          rawMessage = data.toString();
+        } else if (Array.isArray(data)) {
+          // If data is Buffer[], concatenate it
+          rawMessage = Buffer.concat(data as Buffer[]).toString();
+        } else if (data instanceof ArrayBuffer) {
+          rawMessage = Buffer.from(data).toString();
+        } else {
+          // Safe fallback
+          rawMessage = String(data);
+        }
+
+        const msg = JSON.parse(rawMessage) as TickUpdateMessage;
+
         if (msg?.type === 'tickUpdate' && msg?.symbol) {
           console.log(msg);
           this.server.to(`symbol:${msg.symbol}`).emit('tickUpdate', msg);

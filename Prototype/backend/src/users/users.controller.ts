@@ -9,7 +9,6 @@ import {
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
-import { Express } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -59,8 +58,9 @@ export class UsersController {
       this.logger.debug(`Image uploaded successfully. URL: ${imageUrl}`);
       return { imageUrl };
     } catch (error) {
-      this.logger.error('Error uploading profile image', error.stack);
-      return { error: error.message };
+      const err = error as Error;
+      this.logger.error('Error uploading profile image', err.stack);
+      return { error: err.message };
     }
   }
 
