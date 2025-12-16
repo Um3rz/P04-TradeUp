@@ -5,8 +5,11 @@ This document summarizes the key changes and additions to the TradeUp project si
 
 Deployment:https://p04-trade-up.vercel.app/
 ## 1. Trading System 
+<img width="2816" height="1536" alt="Gemini_Generated_Image_l6si8wl6si8wl6si" src="https://github.com/user-attachments/assets/918f4da8-4ae8-4943-9ecb-d358e7857638" />
 
-### Backend Additions
+### Backend Addition
+<img width="2752" height="1536" alt="Gemini_Generated_Image_abdqk1abdqk1abdq" src="https://github.com/user-attachments/assets/78454c09-7a80-4573-b0d2-e4100df93e57" />
+
 - **New Module**: `src/trades/`
   - `trades.controller.ts` - Buy/Sell endpoints
   - `trades.service.ts` - Trading business logic
@@ -266,6 +269,7 @@ enum TransactionType {
 ```
 
 ## 7. Technology Stack Updates
+<img width="2816" height="875" alt="Gemini_Generated_Image_84mqbe84mqbe84mq" src="https://github.com/user-attachments/assets/652b45d3-40f5-49c8-9eea-a28455eed169" />
 
 ### Backend Version Updates
 - **NestJS**: 11.0.1 (updated from 10.x)
